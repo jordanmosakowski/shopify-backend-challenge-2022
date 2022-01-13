@@ -78,4 +78,6 @@ app.get("/exportcsv", function (req, res) {
     res.send(csv);
 });
 //Serve the app on port 8080
-app.listen(8080);
+app.listen(8080, function () {
+    console.log('Inventory System running on port 8080');
+});
