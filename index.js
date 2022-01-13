@@ -26,6 +26,7 @@ const express_1 = __importDefault(require("express"));
 const uuid_1 = require("uuid");
 const path = __importStar(require("path"));
 const app = (0, express_1.default)();
+app.use(express_1.default.json());
 //Initialize an empty inventory system;
 const inventory = [];
 //Return the index.html file

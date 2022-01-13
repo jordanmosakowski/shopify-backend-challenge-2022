@@ -1,11 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Inventory System</title>
+    <title>Inventory System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+        body{
+            font-family: 'Roboto', sans-serif;
+        }
+        .popup{
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: none;
+        }
+        .popup-content{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            background: #ffffff;
+            width: 50vw;
+            max-width: 500px;
+            min-height: 100px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+    <script>
+        function showAdd(){
+            document.getElementById("add-item").style.display = "block";
+        }
+        function closeAdd(){
+            document.getElementById("add-item").style.display = "none";
+        }
+        function addItem(){
+            const name = document.getElementById("name").value;
+            const description = document.getElementById("description").value;
+            const quantity = Number(document.getElementById("quantity").value);
+            let body = {name,description,quantity};
+            console.log(body);
+            fetch("/inventory", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(body),
+            }).then(res => res.json())
+            .then(newItem => console.log(newItem));
+        }
+    </script>
 </head>
-<h1>Shopfiy Intern Backend Challenge 2022 Submission</h1>
-<h2>Jordan Mosakowski</h2>
-
 <body>
+    <h1>Shopfiy Intern Backend Challenge 2022 Submission</h1>
+    <h4>Jordan Mosakowski</h4>
+    <button id='show-add' onclick='showAdd()'>Add Item</button>
+    
+    <div class='popup' id='add-item'>
+        <form class='popup-content' onsubmit="return false">
+            <label for="name">Item Name:</label><br>
+            <input type="text" id="name" name="add-name"><br>
+    
+            <label for="description">Description:</label><br>
+            <input type="text" id="description" name="add-description"><br>
+    
+            <label for="quantity">Quantity:</label><br>
+            <input type="number" id="quantity" name="add-quantity"><br>
+
+            <input type="submit" value="Create Item" onclick='addItem()'>
+            <button onclick='closeAdd()'> Cancel</button>
+        </form>
+    </div>
 </body>
 </html>

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 const app = express();
+app.use(express.json());
 
 //Initialize an empty inventory system;
 const inventory: Item[] = [];
