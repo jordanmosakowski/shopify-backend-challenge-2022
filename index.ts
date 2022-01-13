@@ -1,5 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
+import * as path from 'path';
 const app = express();
 
 //Initialize an empty inventory system;
@@ -7,7 +9,7 @@ const inventory: Item[] = [];
 
 //Return the index.html file
 app.get('/', function (req, res) {
-    res.send('Hello World!');
+    res.sendFile(path.join(__dirname + '/index.html'));
 });
 
 //List all inventory items
@@ -18,7 +20,8 @@ app.get('/inventory', function (req, res) {
 //Create a new inventory item
 app.post('/inventory', function (req, res) {
     const newItem: Item = req.body;
-    newItem.id = generateId();
+    //Generate an ID for the new item
+    newItem.id = uuidv4();
     inventory.push(newItem);
     res.send(newItem);
 });
@@ -50,6 +53,13 @@ app.delete('/inventory/:id', function (req, res) {
     }
 });
 
+app.get("/exportcsv", function (req, res) {
+    let csv = inventory.map(item => `${item.id},${item.name},${item.description},${item.quantity}`).join("\n");
+    csv = "id,name,description,quantity\n" + csv;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=inventory.csv');
+    res.send(csv);});
+
 //Serve the app on port 8080
 app.listen(8080);
 
@@ -58,8 +68,4 @@ interface Item{
     name: string;
     description: string;
     quantity: number;
-}
-
-function generateId(): string {
-    return uuidv4();
 }
