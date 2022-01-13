@@ -7,7 +7,7 @@
         body{
             font-family: 'Roboto', sans-serif;
         }
-        .popup{
+        #popup{
             position: fixed;
             top: 0;
             left: 0;
@@ -36,6 +36,9 @@
     </style>
     <script>
         getItems();
+        let inventoryLocal = [];
+        let isEditing = false;
+        let editItemId = null;
         function getItems(){
             fetch('/inventory').then(res => res.json()).then(inventory => {
                 for(let item of inventory){
@@ -48,17 +51,24 @@
             let itemElement = document.createElement('div');
             itemElement.innerHTML = `
                 <span class='name'>${item.name} (${item.quantity})</span><span> ${item.description} </span>
+                <button onclick='showEdit("${item.id}")'>Edit</button>
                 <button onclick='deleteItem("${item.id}")'>Delete</button>
             `;
             itemElement.id = item.id;
+            inventoryLocal.push(item);
             document.getElementById('inventory-list').appendChild(itemElement);
         }
 
         function showAdd(){
-            document.getElementById("add-item").style.display = "block";
+            isEditing = false;
+            document.getElementById("name").value = "";
+            document.getElementById("description").value = "";
+            document.getElementById("quantity").value = "0";
+            document.getElementById("submit").value = "Create Item";
+            document.getElementById("popup").style.display = "block";
         }
-        function closeAdd(){
-            document.getElementById("add-item").style.display = "none";
+        function closePopup(){
+            document.getElementById("popup").style.display = "none";
         }
         function addItem(){
             const name = document.getElementById("name").value;
@@ -73,7 +83,7 @@
             .then(newItem => {
                 console.log(newItem); 
                 addItemElement(newItem);
-                closeAdd();
+                closePopup();
             });
         }
 
@@ -85,8 +95,43 @@
                 .then(deletedItem => {
                     console.log(deletedItem);
                     document.getElementById(id).remove();
+                    inventoryLocal.splice(inventoryLocal.findIndex(item => item.id == id), 1);
                 });
             }
+        }
+
+        function showEdit(id){
+            isEditing = true;
+            editItemId = id;
+            const item = inventoryLocal.find(item => item.id == id);
+            document.getElementById("name").value = item.name;
+            document.getElementById("description").value = item.description;
+            document.getElementById("quantity").value = item.quantity.toString();
+            document.getElementById("submit").value = "Update Item";
+            document.getElementById("popup").style.display = "block";
+        }
+        function editItem(){
+            const name = document.getElementById("name").value;
+            const description = document.getElementById("description").value;
+            const quantity = Number(document.getElementById("quantity").value);
+            let body = {name,description,quantity};
+            fetch(`/inventory/${editItemId}`, {
+                method: "PUT",
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(body),
+            }).then(res => res.json())
+            .then(updatedItem => {
+                console.log(updatedItem); 
+                const itemElement = document.getElementById(editItemId);
+                itemElement.innerHTML = `
+                    <span class='name'>${updatedItem.name} (${updatedItem.quantity})</span><span> ${updatedItem.description} </span>
+                    <button onclick='showEdit("${updatedItem.id}")'>Edit</button>
+                    <button onclick='deleteItem("${updatedItem.id}")'>Delete</button>
+                `;
+                const oldItem = inventoryLocal.find(item => item.id == updatedItem.id);
+                Object.assign(oldItem,updatedItem);
+                closePopup();
+            });
         }
     </script>
 </head>
@@ -97,19 +142,19 @@
     <br><br>
     <button id='show-add' onclick='showAdd()'>Add Item</button>
     
-    <div class='popup' id='add-item'>
+    <div id='popup'>
         <form class='popup-content' onsubmit="return false">
             <label for="name">Item Name:</label><br>
-            <input type="text" id="name" name="add-name"><br>
+            <input type="text" id="name" name="name"><br>
     
             <label for="description">Description:</label><br>
-            <input type="text" id="description" name="add-description"><br>
+            <input type="text" id="description" name="description"><br>
     
             <label for="quantity">Quantity:</label><br>
-            <input type="number" id="quantity" name="add-quantity"><br>
+            <input type="number" id="quantity" name="quantity"><br>
 
-            <input type="submit" value="Create Item" onclick='addItem()'>
-            <button onclick='closeAdd()'> Cancel</button>
+            <input type="submit" id="submit" value="Create Item" onclick='isEditing ? editItem() : addItem()'>
+            <button onclick='closePopup()'> Cancel</button>
         </form>
     </div>
 </body>
