@@ -29,8 +29,31 @@
             padding: 20px;
             border-radius: 10px;
         }
+        .name{
+            font-size: 1em;
+            font-weight: bold;
+        }
     </style>
     <script>
+        getItems();
+        function getItems(){
+            fetch('/inventory').then(res => res.json()).then(inventory => {
+                for(let item of inventory){
+                    addItemElement(item);
+                }
+            });
+        }
+
+        function addItemElement(item){
+            let itemElement = document.createElement('div');
+            itemElement.innerHTML = `
+                <span class='name'>${item.name} (${item.quantity})</span><span> ${item.description} </span>
+                <button onclick='deleteItem("${item.id}")'>Delete</button>
+            `;
+            itemElement.id = item.id;
+            document.getElementById('inventory-list').appendChild(itemElement);
+        }
+
         function showAdd(){
             document.getElementById("add-item").style.display = "block";
         }
@@ -42,19 +65,36 @@
             const description = document.getElementById("description").value;
             const quantity = Number(document.getElementById("quantity").value);
             let body = {name,description,quantity};
-            console.log(body);
             fetch("/inventory", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'}, 
                 body: JSON.stringify(body),
             }).then(res => res.json())
-            .then(newItem => console.log(newItem));
+            .then(newItem => {
+                console.log(newItem); 
+                addItemElement(newItem);
+                closeAdd();
+            });
+        }
+
+        function deleteItem(id){
+            if(confirm("Are you sure you want to delete this item?")){
+                fetch(`/inventory/${id}`, {
+                    method: "DELETE",
+                }).then(res => res.json())
+                .then(deletedItem => {
+                    console.log(deletedItem);
+                    document.getElementById(id).remove();
+                });
+            }
         }
     </script>
 </head>
 <body>
     <h1>Shopfiy Intern Backend Challenge 2022 Submission</h1>
-    <h4>Jordan Mosakowski</h4>
+    <h3>Jordan Mosakowski</h3>
+    <div id='inventory-list'></div>
+    <br><br>
     <button id='show-add' onclick='showAdd()'>Add Item</button>
     
     <div class='popup' id='add-item'>
